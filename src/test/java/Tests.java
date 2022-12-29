@@ -37,16 +37,19 @@ public class Tests {
         m1.register(myGroup1);
         myGroup1.append("are you subscribe me?");
         assertEquals(m1.toString(),"Member: m1, USB: are you subscribe me?");
-        assertEquals(numOfMembers+1,myGroup1.getMembers().size());
+        assertEquals(myGroup1.getMembers().contains(m1)?numOfMembers:numOfMembers+1,myGroup1.getMembers().size());
     }
 
     @Test
     public void unRegistingTest(){
         int numOfMembers = myGroup1.getMembers().size();
         m1.register(myGroup1);
+        m1.register(myGroup2);
         int afterRegisting = myGroup1.getMembers().size();
+//        String q = String.valueOf(System.identityHashCode(m1));
+//        System.out.println(q);
         m1.unregister(myGroup1);
-        assertEquals(numOfMembers-1,afterRegisting);
+        assertEquals(myGroup1.getMembers().contains(m1)?afterRegisting-1:afterRegisting,myGroup1.getMembers().size());
     }
 
     @Test
@@ -124,5 +127,6 @@ public class Tests {
         UndoableStringBuilder usb = new UndoableStringBuilder();
         m1.update(usb);
         assertEquals(usb, m1.getUsb());
+        System.out.println(myGroup1.getMembers());
     }
 }

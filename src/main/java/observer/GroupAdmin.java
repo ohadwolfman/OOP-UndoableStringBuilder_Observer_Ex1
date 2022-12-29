@@ -25,6 +25,8 @@ public class GroupAdmin implements Sender {
 
     @Override
     public void register(Member obj) {
+        if (this.members.contains(obj))
+            return;
         this.members.add(obj);
         obj.update(this.usb);
         System.out.println("New member added to group");
