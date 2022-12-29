@@ -123,7 +123,7 @@ public class Tests {
         myGroup1.append("the usb updated");
         myGroup1.updateMembers();
         assertEquals("the usb updated", m1.getUsb().toString());
-
+        //another option
         UndoableStringBuilder usb = new UndoableStringBuilder();
         m1.update(usb);
         assertEquals(usb, m1.getUsb());
