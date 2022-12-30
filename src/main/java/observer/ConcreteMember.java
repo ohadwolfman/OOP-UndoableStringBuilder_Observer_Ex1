@@ -7,7 +7,7 @@ package observer;
  * A ConcreteMember is able to register and unregister from a group
  * of ConcreteMembers, or get an update from the group's GroupAdmin
  * when it has changed its USB, in order to update its own USB. 
- * 
+ *
  * @authors Benji Kehat and Ohad Wolfman
  *
  */
@@ -16,28 +16,28 @@ public class ConcreteMember implements Member {
 	String memberName;
 	GroupAdmin adminSender;
 	UndoableStringBuilder usb;
-	
+
 	// Returns this instance's GroupAdmin. Used for Tests class.
 	public GroupAdmin getAdminSender() {
 		return adminSender;
 	}
-	
+
 	// Returns this instance's USB. Used for Tests class.
 	public UndoableStringBuilder getUsb() {
 		return usb;
 	}
-	
+
 	// Returns this instance's name. Used for Tests class.
 	public String getMemberName() {
-	    return memberName;
+		return memberName;
 	}
-	
+
 	// ConcreteMember constructor, that initializes the ConcreteMember and registers it to the specified GroupAdmin.
 	public ConcreteMember(GroupAdmin adminSender, String name) {
 		this.memberName = name;
 		register(adminSender);
 	}
-	
+
 	// Adds the ConcreteMember to the specified GroupAdmin's members list, and shallow copies its USB.
 	// The ConcreteMember's adminSender field will now point to specified GroupAdmin.
 	// If the ConcreteMember is already registered to the GroupAdmin, nothing will happen.
@@ -55,7 +55,7 @@ public class ConcreteMember implements Member {
 		this.usb = mySender.usb;
 		System.out.println("New member added");
 	}
-	
+
 	// Removes the ConcreteMember from the specified GroupAdmin's members list.
 	// The ConcreteMember's USB and adminSender will become null.
 	// If the ConcreteMember attempts to unregister from a GroupAdmin it doesn't belong to, nothing will happen
@@ -69,13 +69,13 @@ public class ConcreteMember implements Member {
 		System.out.println("Member was removed");
 
 	}
-	
+
 	// Copies the specified USB to the ConcreteMember's USB (shallow copy).
 	@Override
 	public void update(UndoableStringBuilder usb) {
 		this.usb = usb;
 	}
-	
+
 	// Returns a string representation of the ConcreteMember.
 	@Override
 	public String toString() {
@@ -84,7 +84,7 @@ public class ConcreteMember implements Member {
 		}
 		return "[Member: "+memberName+", USB: "+this.usb.toString()+"]";
 	}
-	
+
 //	public static void main(String[] args) {
 //		GroupAdmin myGroup1 = new GroupAdmin();
 //		GroupAdmin myGroup2 = new GroupAdmin();
@@ -106,5 +106,5 @@ public class ConcreteMember implements Member {
 //		myGroup1.printGroup();
 //		myGroup2.printGroup();
 //	}
-	
+
 }

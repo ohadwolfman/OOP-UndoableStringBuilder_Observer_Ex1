@@ -1,14 +1,13 @@
 import observer.ConcreteMember;
 import observer.GroupAdmin;
-import observer.Sender;
 import observer.UndoableStringBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 
 import javax.imageio.plugins.tiff.GeoTIFFTagSet;
-
 import static org.junit.jupiter.api.Assertions.*;
+
 
 public class Tests {
     public static final Logger logger = LoggerFactory.getLogger(Tests.class);
@@ -26,107 +25,163 @@ public class Tests {
 
         logger.info(() -> JvmUtilities.jvmInfo());
     }
-    GroupAdmin myGroup1 = new GroupAdmin();
-    GroupAdmin myGroup2 = new GroupAdmin();
-    ConcreteMember m1 = new ConcreteMember(myGroup1);
-    ConcreteMember m2 = new ConcreteMember(myGroup1);
 
     @Test
-    public void registingTest(){
-        int numOfMembers = myGroup1.getMembers().size();
-        m1.register(myGroup1);
-        myGroup1.append("are you subscribe me?");
-        assertEquals(m1.toString(),"Member: m1, USB: are you subscribe me?");
-        assertEquals(myGroup1.getMembers().contains(m1)?numOfMembers:numOfMembers+1,myGroup1.getMembers().size());
+    public void updateConcreteMemberTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1"); // changes group size to 1.
+        myGroup.getUsb().append("Will not show in m1's string");
+        UndoableStringBuilder usb = new UndoableStringBuilder();
+        usb.append("This will show in m1's string");
+        m1.update(usb);
+        assertNotEquals(myGroup.getUsb().toString(), m1.getUsb().toString());
+        assertEquals("This will show in m1's string", m1.getUsb().toString());
     }
 
     @Test
-    public void unRegistingTest(){
-        int numOfMembers = myGroup1.getMembers().size();
-        m1.register(myGroup1);
-        m1.register(myGroup2);
-        int afterRegisting = myGroup1.getMembers().size();
-//        String q = String.valueOf(System.identityHashCode(m1));
-//        System.out.println(q);
-        m1.unregister(myGroup1);
-        assertEquals(myGroup1.getMembers().contains(m1)?afterRegisting-1:afterRegisting,myGroup1.getMembers().size());
+    void updateMembersTest() {
+        GroupAdmin myGroup = new GroupAdmin();
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1"); // changes group size to 1.
+        ConcreteMember m2 = new ConcreteMember(myGroup, "m2"); // changes group size to 1.
+        myGroup.append("The GroupAdmin's USB was modified");
+        myGroup.updateMembers();
+        assertEquals("The GroupAdmin's USB was modified", m1.getUsb().toString());
+        assertEquals("The GroupAdmin's USB was modified", m2.getUsb().toString());
     }
 
     @Test
-    public void transitionsBetweenGroups(){
-        m1.register(myGroup1);
-        assertEquals("Member: m1, USB: ",m1.toString());
+    public void registerConcreteMemberMethodTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Hello ");
+        int numOfMembers = myGroup.getMembers().size(); // 0 at this point.
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1"); // changes group size to 1.
+        assertTrue(myGroup.getMembers().contains(m1));
+        assertEquals(myGroup.getMembers().size(), numOfMembers+1);
+        assertEquals(m1.toString(),"[Member: m1, USB: Hello ]");
+        myGroup.append("World!"); // updates m1 usb
+        assertEquals(m1.toString(),"[Member: m1, USB: Hello World!]");
+        m1.register(myGroup); // m1 is already registered to myGroup, should do nothing.
+        assertEquals(myGroup.getMembers().size(), numOfMembers+1);
 
-        myGroup1.append("are you subscribe me?");
-        String currentUsb = m1.toString();
-        // We want t check if after registing another Group the member will hold the previous value until acceptance of new Usb
-        m1.register(myGroup2);
-        assertEquals("Member: m1, USB: are you subscribe me?",currentUsb);
+    }
 
-        myGroup2.append("yes!");
-        currentUsb = m1.toString();
-        assertEquals("Member: m1, USB: yes!",currentUsb);
+    @Test
+    public void registerGroupAdminMethodTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Hello ");
+        int numOfMembers = myGroup.getMembers().size(); // 0 at this point.
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1"); // initialize m1.
+        m1.unregister(myGroup); // unregister m1.
+        myGroup.register(m1); // test GroupAdmin.register() method.
+        assertTrue(myGroup.getMembers().contains(m1));
+        assertEquals(myGroup.getMembers().size(), numOfMembers+1);
+        assertEquals(m1.toString(),"[Member: m1, USB: Hello ]");
+        myGroup.append("World!"); // updates m1 usb
+        assertEquals(m1.toString(),"[Member: m1, USB: Hello World!]");
+        myGroup.register(m1); // m1 is already registered to myGroup, should do nothing.
+        assertEquals(myGroup.getMembers().size(), numOfMembers+1);
+    }
 
-//        myGroup2.delete(0,this.myGroup2.getUsb().toString().length());
-        m1.unregister(myGroup2);
-        currentUsb = m1.toString();
-        assertEquals("Member: m1, USB is empty",currentUsb);
+    @Test
+    public void unregisterConcreteMemberMethodTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1");
+        int numOfMembers = myGroup.getMembers().size(); // 1 at this point.
+        m1.unregister(myGroup); // changes group size to 0.
+        assertFalse(myGroup.getMembers().contains(m1)); // myGroup no longer contains m1.
+        assertEquals(myGroup.getMembers().size(), numOfMembers-1); // 0 at this point.
+        assertEquals(m1.toString(),"[Member: m1, USB is empty]"); // m1 usb should be empty.
+        m1.unregister(myGroup); // m1 is already unregistered from myGroup, should do nothing.
+        assertEquals(myGroup.getMembers().size(), numOfMembers-1);
+    }
+
+    @Test
+    public void unregisterGroupAdminMethodTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1");
+        int numOfMembers = myGroup.getMembers().size(); // 1 at this point.
+        myGroup.unregister(m1); // changes group size to 0.
+        assertFalse(myGroup.getMembers().contains(m1)); // myGroup no longer contains m1.
+        assertEquals(myGroup.getMembers().size(), numOfMembers-1); // 0 at this point.
+        assertEquals(m1.toString(),"[Member: m1, USB is empty]"); // m1 usb should be empty.
+        myGroup.unregister(m1); // m1 is already unregistered from myGroup, should do nothing.
+        assertEquals(myGroup.getMembers().size(), numOfMembers-1);
+    }
+
+    @Test
+    public void transitionsBetweenGroupsTest(){
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Good guys");
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1");
+        int numOfMembers = myGroup.getMembers().size(); // 1 at this point.
+        GroupAdmin myGroup2 = new GroupAdmin();
+        myGroup2.append("Bad guys");
+        m1.register(myGroup2); // will unregister m3 from myGroup before registering with myGroup2.
+        assertFalse(myGroup.getMembers().contains(m1));
+        assertEquals(myGroup.getMembers().size(), numOfMembers-1);
+        assertEquals("[Member: m1, USB: Bad guys]", m1.toString());
+        myGroup.insert(0, "You still belong to the good guys"); // if m1 is still getting updates from myGroup, its string will change.
+        assertEquals("[Member: m1, USB: Bad guys]", m1.toString());
     }
 
     @Test
     void testAppend() {
-        myGroup1.register(m1);
-        myGroup1.append("check");
-        myGroup1.append(myGroup1.getUsb().toString());
-        assertEquals(myGroup1.getUsb().toString(),m1.getUsb().toString());
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Test the");
+        assertEquals(myGroup.getUsb().toString(), "Test the");
+        myGroup.append(" append method");
+        assertEquals(myGroup.getUsb().toString(), "Test the append method");
     }
 
     @Test
     void testDelete() {
-        myGroup1.register(m1);
-        myGroup1.append("You can't delete me!");
-        myGroup1.delete(7,9);
-        assertEquals(myGroup1.getUsb().toString(),m1.getUsb().toString());
-
-        myGroup1.register(m2);
-        myGroup1.append(" i was wrong");
-        myGroup1.delete(0,m2.getUsb().toString().length());
-        assertEquals("",m2.getUsb().toString());
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("You can't delete me!");
+        myGroup.delete(7,9);
+        assertEquals(myGroup.getUsb().toString(),"You can delete me!");
+        myGroup.delete(1,1);
+        assertEquals(myGroup.getUsb().toString(),"You can delete me!");
+        myGroup.delete(3,20);
+        assertEquals(myGroup.getUsb().toString(),"You");
     }
 
     @Test
     public void testInsert() {
-        myGroup1.register(m1);
-        myGroup1.append("Insert here please");
-        int rowLength = myGroup1.getUsb().toString().length();
-        myGroup1.insert(rowLength, ", ok!");
-        int newLength = myGroup1.getUsb().toString().length();
-        assertTrue(newLength == rowLength + 5);
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Insert here");
+        myGroup.insert(7, "a string ");
+        assertEquals(myGroup.getUsb().toString(),"Insert a string here");
     }
 
     @Test
     void testUndo() {
-        myGroup1.register(m1);
-        myGroup1.append("U can undo");
-        myGroup1.append("!");
-        myGroup1.undo();
-        assertEquals("U can undo", m1.getUsb().toString());
-        myGroup1.undo();
-        assertEquals("", m1.getUsb().toString());
+        GroupAdmin myGroup = new GroupAdmin();
+        myGroup.append("Append a string");
+        myGroup.append(", and then append another string");
+        assertEquals(myGroup.getUsb().toString(),"Append a string, and then append another string");
+        myGroup.undo();
+        assertEquals(myGroup.getUsb().toString(),"Append a string");
     }
 
     @Test
-    void testUpdate() {
-        myGroup1.register(m1);
-        int rowLength = myGroup1.getUsb().toString().length();
-        myGroup1.delete(0,rowLength);
-        myGroup1.append("the usb updated");
-        myGroup1.updateMembers();
-        assertEquals("the usb updated", m1.getUsb().toString());
-        //another option
-        UndoableStringBuilder usb = new UndoableStringBuilder();
-        m1.update(usb);
-        assertEquals(usb, m1.getUsb());
-        System.out.println(myGroup1.getMembers());
+    void memoryTest() {
+        GroupAdmin myGroup = new GroupAdmin();
+        ConcreteMember m1 = new ConcreteMember(myGroup, "m1");
+        ConcreteMember m2 = new ConcreteMember(myGroup, "m1");
+
+        System.out.println("\nEmpty USB:\n");
+        System.out.println("myGroup: " + JvmUtilities.objectFootprint(myGroup));
+        System.out.println("m1: " + JvmUtilities.objectFootprint(myGroup));
+        System.out.println("m1: " + JvmUtilities.objectTotalSize(m1));
+        System.out.println("m2: " + JvmUtilities.objectTotalSize(m2));
+
+        myGroup.append("String added");
+
+        System.out.println("\nUSB With String:\n");
+        System.out.println("myGroup: " + JvmUtilities.objectFootprint(myGroup));
+        System.out.println("m1: " + JvmUtilities.objectFootprint(myGroup));
+        System.out.println("m1: " + JvmUtilities.objectTotalSize(m1));
+        System.out.println("m2: " + JvmUtilities.objectTotalSize(m2));
+        System.out.println("\nProgram total: " + JvmUtilities.jvmInfo());
     }
 }
